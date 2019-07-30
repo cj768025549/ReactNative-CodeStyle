@@ -1,4 +1,4 @@
-# Codempire Javascript Code Style Guide
+# Javascript Code Style Guide
 
 ## Table of Contents
 
