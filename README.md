@@ -7,7 +7,5 @@
 3. [Typings](docs/typings.md)
 4. [Tools](docs/tools.md)
 5. [Useful NPM libraries](docs/npm.md)
-6. [Contact Us](#contact-us)
-7. [License](#license)
 
 
