@@ -1,71 +1,180 @@
-# ES6和React的规范在实践中仍然在不断改进，此处放弃跟进维护。建议大家直接在开发环境中使用[airbnb的eslint规范](https://www.npmjs.com/package/eslint-config-airbnb)。
+# Airbnb React/JSX Style Guide
 
-# React Native 代码规范
+*A mostly reasonable approach to React and JSX*
 
-> 本规范是基于airbnb的[react代码规范](https://github.com/airbnb/javascript/tree/master/react)与广发证券前端团队的[ES6代码规范](https://github.com/gf-rd/es6-coding-style)修改而成。感谢这两个团队！
+This style guide is mostly based on the standards that are currently prevalent in JavaScript, although some conventions (i.e async/await or static class fields) may still be included or prohibited on a case-by-case basis. Currently, anything prior to stage 3 is not included nor recommended in this guide.
 
-> 本规范主要用于React Native项目，原则是提升效率、规避风险。
+## Table of Contents
 
-> 另有[React Native项目结构规范](https://github.com/sunnylqm/react-native-project-structure-guide)。
+  1. [Basic Rules](#basic-rules)
+  1. [Class vs `React.createClass` vs stateless](#class-vs-reactcreateclass-vs-stateless)
+  1. [Mixins](#mixins)
+  1. [Naming](#naming)
+  1. [Declaration](#declaration)
+  1. [Alignment](#alignment)
+  1. [Quotes](#quotes)
+  1. [Spacing](#spacing)
+  1. [Props](#props)
+  1. [Refs](#refs)
+  1. [Parentheses](#parentheses)
+  1. [Tags](#tags)
+  1. [Methods](#methods)
+  1. [Ordering](#ordering)
+  1. [`isMounted`](#ismounted)
 
+## Basic Rules
 
-## 内容目录
-	
-- React/JSX代码规范
-  - [文件与组件命名](#文件与组件命名)
-  - [组件声明](#组件声明)
-  - [对齐](#对齐)
-  - [引号](#引号)
-  - [空格](#空格)
-  - [state/props](#state/props)
-  - [括号](#括号)
-  - [标签](#标签)
-  - [方法](#方法)
-  - [方法声明的顺序](#方法声明的顺序)
-- ES6代码规范
-  - [变量与常量声明](#变量与常量声明)
-  - [字符串](#字符串)
-  - [解构](#解构)
-  - [数组](#数组)
-  - [函数](#函数)
-  - [类](#类)
-  - [模块](#模块)
+  - Only include one React component per file.
+    - However, multiple [Stateless, or Pure, Components](https://facebook.github.io/react/docs/reusable-components.html#stateless-functions) are allowed per file. eslint: [`react/no-multi-comp`](https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/no-multi-comp.md#ignorestateless).
+  - Always use JSX syntax.
+  - Do not use `React.createElement` unless you’re initializing the app from a file that is not JSX.
+  - [`react/forbid-prop-types`](https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/forbid-prop-types.md) will allow `arrays` and `objects` only if it is explicitly noted what `array` and `object` contains, using `arrayOf`, `objectOf`, or `shape`.
 
-## React/JSX代码规范
-### 文件与组件命名
+## Class vs `React.createClass` vs stateless
 
-  - **扩展名**: 使用`.js`作为js文件的扩展名。如果同一个文件夹下有同名而不同作用的js文件，则通过中缀（小写）进一步区分，例如：`HomeView.component.js`,`HomeView.style.js`,`HomeView.action.js`等。
-  - **文件名**: 使用驼峰命名法且首字母大写，如`HomeView.js`。
-  - **组件命名**: 与文件名（除中缀外）完全一致。如果组件单独放置在目录中，则目录名也一致。  
-  
-    ```javascript
+  - If you have internal state and/or refs, prefer `class extends React.Component` over `React.createClass`. eslint: [`react/prefer-es6-class`](https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/prefer-es6-class.md) [`react/prefer-stateless-function`](https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/prefer-stateless-function.md)
+
+    ```jsx
     // bad
-    import Footer from './Component/Footer/FooterView'
-
-    // good
-    import Footer from './Component/Footer/Footer'
-
-    // good
-    import Footer from './Footer'
-    ```
-
-
-### 组件声明
-  - 使用class与extends关键字。不使用React.createClass方法。需要导出的组件直接在class关键字前使用export default。
-    ```javascript
-    // bad
-    export default React.createClass({
+    const Listing = React.createClass({
+      // ...
+      render() {
+        return <div>{this.state.hello}</div>;
+      }
     });
 
     // good
-    export default class HomeView extends React.Component {
+    class Listing extends React.Component {
+      // ...
+      render() {
+        return <div>{this.state.hello}</div>;
+      }
     }
     ```
 
-### 对齐
-  - 按下面的案例对齐：
+    And if you don’t have state or refs, prefer normal functions (not arrow functions) over classes:
 
-    ```javascript
+    ```jsx
+    // bad
+    class Listing extends React.Component {
+      render() {
+        return <div>{this.props.hello}</div>;
+      }
+    }
+
+    // bad (relying on function name inference is discouraged)
+    const Listing = ({ hello }) => (
+      <div>{hello}</div>
+    );
+
+    // good
+    function Listing({ hello }) {
+      return <div>{hello}</div>;
+    }
+    ```
+
+## Mixins
+
+  - [Do not use mixins](https://facebook.github.io/react/blog/2016/07/13/mixins-considered-harmful.html).
+
+  > Why? Mixins introduce implicit dependencies, cause name clashes, and cause snowballing complexity. Most use cases for mixins can be accomplished in better ways via components, higher-order components, or utility modules.
+
+## Naming
+
+  - **Extensions**: Use `.jsx` extension for React components. eslint: [`react/jsx-filename-extension`](https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-filename-extension.md)
+  - **Filename**: Use PascalCase for filenames. E.g., `ReservationCard.jsx`.
+  - **Reference Naming**: Use PascalCase for React components and camelCase for their instances. eslint: [`react/jsx-pascal-case`](https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-pascal-case.md)
+
+    ```jsx
+    // bad
+    import reservationCard from './ReservationCard';
+
+    // good
+    import ReservationCard from './ReservationCard';
+
+    // bad
+    const ReservationItem = <ReservationCard />;
+
+    // good
+    const reservationItem = <ReservationCard />;
+    ```
+
+  - **Component Naming**: Use the filename as the component name. For example, `ReservationCard.jsx` should have a reference name of `ReservationCard`. However, for root components of a directory, use `index.jsx` as the filename and use the directory name as the component name:
+
+    ```jsx
+    // bad
+    import Footer from './Footer/Footer';
+
+    // bad
+    import Footer from './Footer/index';
+
+    // good
+    import Footer from './Footer';
+    ```
+
+  - **Higher-order Component Naming**: Use a composite of the higher-order component’s name and the passed-in component’s name as the `displayName` on the generated component. For example, the higher-order component `withFoo()`, when passed a component `Bar` should produce a component with a `displayName` of `withFoo(Bar)`.
+
+    > Why? A component’s `displayName` may be used by developer tools or in error messages, and having a value that clearly expresses this relationship helps people understand what is happening.
+
+    ```jsx
+    // bad
+    export default function withFoo(WrappedComponent) {
+      return function WithFoo(props) {
+        return <WrappedComponent {...props} foo />;
+      }
+    }
+
+    // good
+    export default function withFoo(WrappedComponent) {
+      function WithFoo(props) {
+        return <WrappedComponent {...props} foo />;
+      }
+
+      const wrappedComponentName = WrappedComponent.displayName
+        || WrappedComponent.name
+        || 'Component';
+
+      WithFoo.displayName = `withFoo(${wrappedComponentName})`;
+      return WithFoo;
+    }
+    ```
+
+  - **Props Naming**: Avoid using DOM component prop names for different purposes.
+
+    > Why? People expect props like `style` and `className` to mean one specific thing. Varying this API for a subset of your app makes the code less readable and less maintainable, and may cause bugs.
+
+    ```jsx
+    // bad
+    <MyComponent style="fancy" />
+
+    // bad
+    <MyComponent className="fancy" />
+
+    // good
+    <MyComponent variant="fancy" />
+    ```
+
+## Declaration
+
+  - Do not use `displayName` for naming components. Instead, name the component by reference.
+
+    ```jsx
+    // bad
+    export default React.createClass({
+      displayName: 'ReservationCard',
+      // stuff goes here
+    });
+
+    // good
+    export default class ReservationCard extends React.Component {
+    }
+    ```
+
+## Alignment
+
+  - Follow these alignment styles for JSX syntax. eslint: [`react/jsx-closing-bracket-location`](https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-closing-bracket-location.md) [`react/jsx-closing-tag-location`](https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-closing-tag-location.md)
+
+    ```jsx
     // bad
     <Foo superLongParam="bar"
          anotherSuperLongParam="baz" />
@@ -76,22 +185,44 @@
       anotherSuperLongParam="baz"
     />
 
-    // 如果一行能摆下props，那就摆在一行
+    // if props fit in one line then keep it on the same line
     <Foo bar="bar" />
 
-    // 子组件照常缩进
+    // children get indented normally
     <Foo
       superLongParam="bar"
       anotherSuperLongParam="baz"
     >
-      <Spazz />
+      <Quux />
     </Foo>
+
+    // bad
+    {showButton &&
+      <Button />
+    }
+
+    // bad
+    {
+      showButton &&
+        <Button />
+    }
+
+    // good
+    {showButton && (
+      <Button />
+    )}
+
+    // good
+    {showButton && <Button />}
     ```
 
-### 引号
-  - 对于JSX的字符串属性使用双引号(`"`)，其他情况下使用单引号。
+## Quotes
 
-    ```javascript
+  - Always use double quotes (`"`) for JSX attributes, but single quotes (`'`) for all other JS. eslint: [`jsx-quotes`](https://eslint.org/docs/rules/jsx-quotes)
+
+    > Why? Regular HTML attributes also typically use double quotes instead of single, so JSX attributes mirror this convention.
+
+    ```jsx
     // bad
     <Foo bar='bar' />
 
@@ -105,9 +236,11 @@
     <Foo style={{ left: '20px' }} />
     ```
 
-### 空格
-  - 在自闭合的标签中包含一个空格。
-    ```javascript
+## Spacing
+
+  - Always include a single space in your self-closing tag. eslint: [`no-multi-spaces`](https://eslint.org/docs/rules/no-multi-spaces), [`react/jsx-tag-spacing`](https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-tag-spacing.md)
+
+    ```jsx
     // bad
     <Foo/>
 
@@ -122,9 +255,21 @@
     <Foo />
     ```
 
-### state/props
-  - 对于多个单词组成的pros，使用驼峰命名法。不使用下划线或连接线。
-    ```javascript
+  - Do not pad JSX curly braces with spaces. eslint: [`react/jsx-curly-spacing`](https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-curly-spacing.md)
+
+    ```jsx
+    // bad
+    <Foo bar={ baz } />
+
+    // good
+    <Foo bar={baz} />
+    ```
+
+## Props
+
+  - Always use camelCase for prop names.
+
+    ```jsx
     // bad
     <Foo
       UserName="hello"
@@ -137,23 +282,207 @@
       phoneNumber={12345678}
     />
     ```
-  - 读取state和props时，使用const与解构，必要时可使用let。不使用var。
-    ```javascript
+
+  - Omit the value of the prop when it is explicitly `true`. eslint: [`react/jsx-boolean-value`](https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-boolean-value.md)
+
+    ```jsx
     // bad
-    var userName = this.props.userName;
-    let checked = this.state.checked;
+    <Foo
+      hidden={true}
+    />
 
     // good
-    const { userName, age, sex } = this.props;
-    const { checked } = this.state;
-    ```  
-    
-### 括号
-  - 当JSX标签超过一行时，使用括号包裹。
-    ```javascript
-    /// bad
+    <Foo
+      hidden
+    />
+
+    // good
+    <Foo hidden />
+    ```
+
+  - Always include an `alt` prop on `<img>` tags. If the image is presentational, `alt` can be an empty string or the `<img>` must have `role="presentation"`. eslint: [`jsx-a11y/alt-text`](https://github.com/evcohen/eslint-plugin-jsx-a11y/blob/master/docs/rules/alt-text.md)
+
+    ```jsx
+    // bad
+    <img src="hello.jpg" />
+
+    // good
+    <img src="hello.jpg" alt="Me waving hello" />
+
+    // good
+    <img src="hello.jpg" alt="" />
+
+    // good
+    <img src="hello.jpg" role="presentation" />
+    ```
+
+  - Do not use words like "image", "photo", or "picture" in `<img>` `alt` props. eslint: [`jsx-a11y/img-redundant-alt`](https://github.com/evcohen/eslint-plugin-jsx-a11y/blob/master/docs/rules/img-redundant-alt.md)
+
+    > Why? Screenreaders already announce `img` elements as images, so there is no need to include this information in the alt text.
+
+    ```jsx
+    // bad
+    <img src="hello.jpg" alt="Picture of me waving hello" />
+
+    // good
+    <img src="hello.jpg" alt="Me waving hello" />
+    ```
+
+  - Use only valid, non-abstract [ARIA roles](https://www.w3.org/TR/wai-aria/#usage_intro). eslint: [`jsx-a11y/aria-role`](https://github.com/evcohen/eslint-plugin-jsx-a11y/blob/master/docs/rules/aria-role.md)
+
+    ```jsx
+    // bad - not an ARIA role
+    <div role="datepicker" />
+
+    // bad - abstract ARIA role
+    <div role="range" />
+
+    // good
+    <div role="button" />
+    ```
+
+  - Do not use `accessKey` on elements. eslint: [`jsx-a11y/no-access-key`](https://github.com/evcohen/eslint-plugin-jsx-a11y/blob/master/docs/rules/no-access-key.md)
+
+  > Why? Inconsistencies between keyboard shortcuts and keyboard commands used by people using screenreaders and keyboards complicate accessibility.
+
+  ```jsx
+  // bad
+  <div accessKey="h" />
+
+  // good
+  <div />
+  ```
+
+  - Avoid using an array index as `key` prop, prefer a stable ID. eslint: [`react/no-array-index-key`](https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/no-array-index-key.md)
+
+> Why? Not using a stable ID [is an anti-pattern](https://medium.com/@robinpokorny/index-as-a-key-is-an-anti-pattern-e0349aece318) because it can negatively impact performance and cause issues with component state.
+
+We don’t recommend using indexes for keys if the order of items may change.
+
+  ```jsx
+  // bad
+  {todos.map((todo, index) =>
+    <Todo
+      {...todo}
+      key={index}
+    />
+  )}
+
+  // good
+  {todos.map(todo => (
+    <Todo
+      {...todo}
+      key={todo.id}
+    />
+  ))}
+  ```
+
+  - Always define explicit defaultProps for all non-required props.
+
+  > Why? propTypes are a form of documentation, and providing defaultProps means the reader of your code doesn’t have to assume as much. In addition, it can mean that your code can omit certain type checks.
+
+  ```jsx
+  // bad
+  function SFC({ foo, bar, children }) {
+    return <div>{foo}{bar}{children}</div>;
+  }
+  SFC.propTypes = {
+    foo: PropTypes.number.isRequired,
+    bar: PropTypes.string,
+    children: PropTypes.node,
+  };
+
+  // good
+  function SFC({ foo, bar, children }) {
+    return <div>{foo}{bar}{children}</div>;
+  }
+  SFC.propTypes = {
+    foo: PropTypes.number.isRequired,
+    bar: PropTypes.string,
+    children: PropTypes.node,
+  };
+  SFC.defaultProps = {
+    bar: '',
+    children: null,
+  };
+  ```
+
+  - Use spread props sparingly.
+  > Why? Otherwise you’re more likely to pass unnecessary props down to components. And for React v15.6.1 and older, you could [pass invalid HTML attributes to the DOM](https://reactjs.org/blog/2017/09/08/dom-attributes-in-react-16.html).
+
+  Exceptions:
+
+  - HOCs that proxy down props and hoist propTypes
+
+  ```jsx
+  function HOC(WrappedComponent) {
+    return class Proxy extends React.Component {
+      Proxy.propTypes = {
+        text: PropTypes.string,
+        isLoading: PropTypes.bool
+      };
+
+      render() {
+        return <WrappedComponent {...this.props} />
+      }
+    }
+  }
+  ```
+
+  - Spreading objects with known, explicit props. This can be particularly useful when testing React components with Mocha’s beforeEach construct.
+
+  ```jsx
+  export default function Foo {
+    const props = {
+      text: '',
+      isPublished: false
+    }
+
+    return (<div {...props} />);
+  }
+  ```
+
+  Notes for use:
+  Filter out unnecessary props when possible. Also, use [prop-types-exact](https://www.npmjs.com/package/prop-types-exact) to help prevent bugs.
+
+  ```jsx
+  // bad
+  render() {
+    const { irrelevantProp, ...relevantProps } = this.props;
+    return <WrappedComponent {...this.props} />
+  }
+
+  // good
+  render() {
+    const { irrelevantProp, ...relevantProps } = this.props;
+    return <WrappedComponent {...relevantProps} />
+  }
+  ```
+
+## Refs
+
+  - Always use ref callbacks. eslint: [`react/no-string-refs`](https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/no-string-refs.md)
+
+    ```jsx
+    // bad
+    <Foo
+      ref="myRef"
+    />
+
+    // good
+    <Foo
+      ref={(ref) => { this.myRef = ref; }}
+    />
+    ```
+
+## Parentheses
+
+  - Wrap JSX tags in parentheses when they span more than one line. eslint: [`react/jsx-wrap-multilines`](https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-wrap-multilines.md)
+
+    ```jsx
+    // bad
     render() {
-      return <MyComponent className="long body" foo="bar">
+      return <MyComponent variant="long body" foo="bar">
                <MyChild />
              </MyComponent>;
     }
@@ -161,7 +490,7 @@
     // good
     render() {
       return (
-        <MyComponent className="long body" foo="bar">
+        <MyComponent variant="long body" foo="bar">
           <MyChild />
         </MyComponent>
       );
@@ -174,18 +503,21 @@
     }
     ```
 
-### 标签
-  - 对于没有子组件的JSX标签，始终自闭合。
-    ```javascript
+## Tags
+
+  - Always self-close tags that have no children. eslint: [`react/self-closing-comp`](https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/self-closing-comp.md)
+
+    ```jsx
     // bad
-    <Foo className="stuff"></Foo>
+    <Foo variant="stuff"></Foo>
 
     // good
-    <Foo className="stuff" />
+    <Foo variant="stuff" />
     ```
 
-  - 如果组件有多行属性，则另起一行进行自闭合。
-    ```javascript
+  - If your component has multiline properties, close its tag on a new line. eslint: [`react/jsx-closing-bracket-location`](https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-closing-bracket-location.md)
+
+    ```jsx
     // bad
     <Foo
       bar="bar"
@@ -198,14 +530,79 @@
     />
     ```
 
-### 方法
-  - 为方法命名时，不使用下划线开头（哪怕是想用作私有方法）。
-    ```javascript
+## Methods
+
+  - Use arrow functions to close over local variables. It is handy when you need to pass additional data to an event handler. Although, make sure they [do not massively hurt performance](https://www.bignerdranch.com/blog/choosing-the-best-approach-for-react-event-handlers/), in particular when passed to custom components that might be PureComponents, because they will trigger a possibly needless rerender every time.
+
+    ```jsx
+    function ItemList(props) {
+      return (
+        <ul>
+          {props.items.map((item, index) => (
+            <Item
+              key={item.key}
+              onClick={(event) => { doSomethingWith(event, item.name, index); }}
+            />
+          ))}
+        </ul>
+      );
+    }
+    ```
+
+  - Bind event handlers for the render method in the constructor. eslint: [`react/jsx-no-bind`](https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-no-bind.md)
+
+    > Why? A bind call in the render path creates a brand new function on every single render. Do not use arrow functions in class fields, because it makes them [challenging to test and debug, and can negatively impact performance](https://medium.com/@charpeni/arrow-functions-in-class-properties-might-not-be-as-great-as-we-think-3b3551c440b1), and because conceptually, class fields are for data, not logic.
+
+    ```jsx
+    // bad
+    class extends React.Component {
+      onClickDiv() {
+        // do stuff
+      }
+
+      render() {
+        return <div onClick={this.onClickDiv.bind(this)} />;
+      }
+    }
+
+    // very bad
+    class extends React.Component {
+      onClickDiv = () => {
+        // do stuff
+      }
+
+      render() {
+        return <div onClick={this.onClickDiv} />
+      }
+    }
+
+    // good
+    class extends React.Component {
+      constructor(props) {
+        super(props);
+
+        this.onClickDiv = this.onClickDiv.bind(this);
+      }
+
+      onClickDiv() {
+        // do stuff
+      }
+
+      render() {
+        return <div onClick={this.onClickDiv} />;
+      }
+    }
+    ```
+
+  - Do not use underscore prefix for internal methods of a React component.
+    > Why? Underscore prefixes are sometimes used as a convention in other languages to denote privacy. But, unlike those languages, there is no native support for privacy in JavaScript, everything is public. Regardless of your intentions, adding underscore prefixes to your properties does not actually make them private, and any property (underscore-prefixed or not) should be treated as being public. See issues [#1024](https://github.com/airbnb/javascript/issues/1024), and [#490](https://github.com/airbnb/javascript/issues/490) for a more in-depth discussion.
+
+    ```jsx
     // bad
     React.createClass({
       _onClickSubmit() {
         // do stuff
-      }
+      },
 
       // other stuff
     });
@@ -217,643 +614,121 @@
       }
 
       // other stuff
-    });
+    }
     ```
 
-### 方法声明的顺序
+  - Be sure to return a value in your `render` methods. eslint: [`react/require-render-return`](https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/require-render-return.md)
 
-  - 原则上按如下顺序排列React组件的各个方法（生命周期）：
-  
-  1. constructor
-  1. 静态方法（static methods)
-  1. getChildContext
-  1. componentWillMount
-  1. componentDidMount
-  1. componentWillReceiveProps
-  1. shouldComponentUpdate
-  1. componentWillUpdate
-  1. componentDidUpdate
-  1. componentWillUnmount
-  1. 点击处理或事件处理函数，比如onClickSubmit()、onChangeDescription()
-  1. 用在render中的getter方法，比如getSelectReason()、getFooterContent()
-  1. 可选的render方法，比如renderNavigation()、renderProfilePicture()
-  1. render
-
-  - 按如下方式定义propTypes, defaultProps, contextTypes等  
-
-  ```javascript
-  import React, { Component, PropTypes } from 'react';
-  
-  const propTypes = {
-    id: PropTypes.number.isRequired,
-    url: PropTypes.string.isRequired,
-    text: PropTypes.string,
-  };
-  
-  const defaultProps = {
-    text: 'Hello World',
-  };
-  
-  class Link extends Component {
-    static methodsAreOk() {
-      return true;
-    }
-  
+    ```jsx
+    // bad
     render() {
-      return <a href={this.props.url} data-id={this.props.id}>{this.props.text}</a>
+      (<div />);
     }
-  }
-  
-  Link.propTypes = propTypes;
-  Link.defaultProps = defaultProps;
-  
-  export default Link;
-  ```
 
-**[⬆ 回到目录](#内容目录)**
-
-## ES6代码规范
-
-### 变量与常量声明
-
-- 1.1 变量
-
-> 尽量使用`let`来代替`var`
-
-> 对于全局变量声明，采用`global.xxx = xxx`，但应避免声明过多全局变量污染环境
-
-- 1.2 常量
-
-> 对于常量应使用`const`进行声明，命名采用驼峰写法
-
-> 对于使用 immutable 数据应用`const`进行声明
-
-```js
-// 不好
-let someNum = 123;
-const AnotherStr = '不变的字符串';
-let arr = ['不', '变', '数', '组'];
-var ANOTHER_OBJ = {
-  '不变对象': true
-};
-
-
-// 好
-const someNum = 123;
-const anotherStr = '不变的字符串';
-const arr = ['不', '变', '数', '组'];
-const anotherObj = {
-  '不变对象': true
-};
-
-```
-
-#### 字符串
-
-- 2.1 处理多行字符串,使用模板字符串
-
-> 以反引号( ` )标示
-
-> 可读性更强，代码更易编写
-
-> 注意排版引起空格的问题，使用场景为声明HTML模板字符串
-
-```js
-// 不好
-const tmpl = '<div class="content"> \n' +
-              '<h1>这是换行了。</h1> \n' +
-            '</div>';
-
-
-// 好
-const tmpl = `
-<div class="content">
-  <h1>这是换行了。</h1>
-</div>`;
-```
-
-- 2.2 处理字符串拼接变量时,使用模板字符串
-
-```js
-  // 不好
-  function sayHi(name) {
-    return 'How are you, ' + name + '?';
-  }
-
-
-  // 好
-  function sayHi(name) {
-    return `How are you, ${name}?`;
-  }
-```
-
-#### 解构
-
-- 3.1 解构语句中不使用圆括号
-
-```js
-// 不好
-[(a)] = [11]; // a未定义
-let { a: (b) } = {}; // 解析出错
-
-
-// 好
-let [a, b] = [11, 22];
-```
-
-- 3.2 对象解构
-
-> 对象解构 元素与顺序无关
-
-> 对象指定默认值时仅对恒等于undefined ( !== null ) 的情况生效
-
-- 3.2.1 若函数形参为对象时，使用对象解构赋值
-
-```js
-// 不好
-function someFun(opt) {
-  let opt1 = opt.opt1;
-  let opt2 = opt.opt2;
-  console.log(op1);
-}
-
-
-// 好
-function someFun(opt) {
-  let { opt1, opt2 } = opt;
-  console.log(`$(opt1) 加上 $(opt2)`);
-}
-
-function someFun({ opt1, opt2 }) {
-  console.log(opt1);
-}
-```
-
-- 3.2.2 若函数有多个返回值时，使用对象解构，不使用数组解构，避免添加顺序的问题
-
-```js
-// 不好
-function anotherFun() {
-  const one = 1, two = 2, three = 3;
-  return [one, two, three];
-}
-const [one, three, two] = anotherFun(); // 顺序乱了
-// one = 1, two = 3, three = 2
-
-
-// 好
-function anotherFun() {
-  const one = 1, two = 2, three = 3;
-  return { one, two, three };
-}
-const { one, three, two } = anotherFun(); // 不用管顺序
-// one = 1, two = 2, three = 3
-```
-
-- 3.2.3 已声明的变量不能用于解构赋值（语法错误）
-
-```js
-// 语法错误
-let a;
-{ a } = { b: 123};
-```
-
-- 3.3 数组解构
-
-> 数组元素与顺序相关
-
-- 3.3.1 交换变量的值
-
-```js
-let x = 1;
-let y = 2;
-
-// 不好
-let temp;
-temp = x;
-x = y;
-y = temp;
-
-
-// 好
-[x, y] = [y, x]; // 交换变量
-```
-
-- 3.3.2 将数组成员赋值给变量时，使用数组解构
-
-```js
-const arr = [1, 2, 3, 4, 5];
-
-// 不好
-const one = arr[0];
-const two = arr[1];
-
-
-// 好
-const [one, two] = arr;
-```
-
-#### 数组
-
-- 4.1 将类数组(array-like)对象与可遍历对象(如`Set`, `Map`)转为真正数组
-
-> 采用`Array.from`进行转换
-
-```js
-// 不好
-function foo() {
-  let args = Array.prototype.slice.call(arguments);
-}
-
-
-// 好
-function foo() {
-  let args = Array.from(arguments);
-}
-
-```
-- 4.2 数组去重
-
-> 结合`Set`结构与`Array.from`
-
-> 使用indexOf，HashTable等形式，不够简洁清晰
-
-```js
-// 好
-function deduplication(arr) {
-  return Array.from(new Set(arr));
-}
-```
-- 4.3 数组拷贝
-
-> 采用数组扩展`...`形式
-
-```js
-const items = [1, 2, 3];
-
-// 不好
-const len = items.length;
-let copyTemp = [];
-for (let i = 0; i < len; i++) {
-  copyTemp[i] = items[i];
-}
-
-
-// 好
-let copyTemp = [...items];
-```
-- 4.4 将一组数值转为数组
-
-> 采用`Array.of`进行转换
-
-```js
-// 不好
-let arr1 = new Array(2); // [undefined x 2]
-let arr2 = new Array(1, 2, 3); // [1, 2, 3]
-
-
-// 好
-let arr1 = Array.of(2);  // [2]
-let arr2 = Array.of(1, 2, 3); // [1, 2, 3]
-```
-
-#### 函数
-
-- 5.1 当要用函数表达式或匿名函数时，使用箭头函数(Arrow Functions)
-
-> 箭头函数更加简洁，并且绑定了this
-
-```js
-// 不好
-const foo = function(x) {
-  console.log(foo.name); // 返回'' ，函数表达式默认省略name属性
-};
-
-[1, 2, 3].map(function(x) {
-  return x + 1;
-});
-
-var testObj = {
-  name: 'testObj',
-  init() {
-    var _this = this; // 保存定义时的this引用
-    document.addEventListener('click', function() {
-      return _this.doSth();
-    }, false);
-  },
-  doSth() {
-    console.log(this.name);
-  }
-};
-
-// 好
-const foo = (x) => {
-  console.log(foo.name); // 返回'foo'
-};
-
-[1, 2, 3].map( (x) => {
-  return x + 1;
-});
-
-var testObj = {
-  name: 'testObj',
-  init() {
-    // 箭头函数自动绑定定义时所在的对象
-    document.addEventListener('click', () => this.doSth(), false);
-  },
-  doSth() {
-    console.log(this.name);
-  }
-};
-```
-
-- 5.1.1 箭头函数书写约定
-
-> 函数体只有单行语句时，允许写在同一行并去除花括号
-
-> 当函数只有一个参数时，允许去除参数外层的括号
-
-```js
-// 好
-const foo = x => x + x; // 注意此处会隐性return x + x
-
-const foo = (x) => {
-  return x + x; // 若函数体有花括号语句块时须进行显性的return
-}; 
-
-[1, 2, 3].map( x => x * x);
-
-```
-- 5.1.2 用箭头函数返回一个对象，应用括号包裹
-
-```js
-// 不好
-let test = x => { x: x }; // 花括号会变成语句块，不表示对象
-
-
-// 好
-let test = x => ({ x: x }); // 使用括号可正确return {x:x}
-```
-
-- 5.2 立即调用函数 IIFE
-
-> 使用箭头函数
-
-```js
-// 不好
-(function() {
-  console.log('哈');
-})();
-
-
-// 好
-(() => {
-  console.log('哈');
-})();
-
-```
-
-- 5.3 函数参数指定默认值
-
-> 采用函数默认参数赋值语法
-
-```js
-// 不好
-function foo(opts) {
-  opts = opts || {};// 此处有将0，''等假值转换掉为默认值的副作用
-}
-
-
-// 好
-function foo(opts = {}) {
-  console.log('更加简洁，安全');
-}
-```
-
-- 5.4 对象中的函数方法使用缩写形式
-
-> 更加简洁
-
-> 函数方法不要使用箭头函数，避免this指向的混乱
-
-```js
-// 不好
-const shopObj = {
-  des: '对象模块写法',
-  foo: function() {
-    console.log(this.des);
-  }
-};
-
-const shopObj = {
-  des: '对象模块写法',
-  foo: () => {
-    console.log(this.des); // 此处会变成undefined.des，因为指向顶层模块的this
-  }
-};
-
-// 好
-const des = '对象模块写法'; // 使用对象属性值简写方式
-const shopObj = {
-  des,
-  foo() {
-    console.log(this.des);
-  }
-};
-```
-
-
-#### 类
-
-- 6.1 类名应使用帕斯卡写法(`PascalCased`)
-
-```js
-// 好
-class SomeClass {
-
-}
-```
-
-- 6.1.1 类名与花括号须保留一个空格间距
-
-> 类中的方法定义时，括号 `)` 也须与花括号 `{` 保留一个空格间距
-
-```js
-// 不好
-class Foo{
-  constructor(){
-    // constructor
-  }
-  sayHi()    {
-    // 仅保留一个空格间距
-  }
-}
-
-
-// 好
-class Foo {
-  constructor() {
-    // constructor
-  }
-  sayHi() {
-    // 仅保留一个空格间距
-  }
-}
-```
-
-- 6.2 定义类时，方法的顺序如下：
-
-  - `constructor`
-
-  - public `get/set` 公用访问器，`set`只能传一个参数
-
-  - public methods 公用方法，公用相关命名使用小驼峰式写法(`lowerCamelCase`)
-
-  - private `get/set` 私有访问器，私有相关命名应加上下划线 `_` 为前缀
-
-  - private methods 私有方法
-
-```js
-// 好
-class SomeClass {
-  constructor() {
-    // constructor
-  }
-
-  get aval() {
-    // public getter
-  }
-
-  set aval(val) {
-    // public setter
-  }
-
-  doSth() {
-    // 公用方法
-  }
-
-  get _aval() {
-    // private getter
-  }
-
-  set _aval() {
-    // private setter
-  }
-
-  _doSth() {
-    // 私有方法
-  }
-}
-
-```
-
-- 6.3 如果不是class类，不使用`new`
-
-```js
-// 不好
-function Foo() {
-
-}
-const foo = new Foo();
-
-
-// 好
-class Foo {
-
-}
-const foo = new Foo();
-```
-
-
-- 6.4 使用真正意思上的类Class写法，不使用`prototype`进行模拟扩展
-
-> Class更加简洁，易维护
-
-```js
-// 不好
-function Dog(names = []) {
-  this._names = [...names];
-}
-Dog.prototype.bark = function() {
-  const currName = this._names[0];
-  alert(`one one ${currName}`);
-}
-
-// 好
-class Dog {
-  constructor(names = []) {
-    this._names = [...names];
-  }
-  bark() {
-    const currName = this._names[0];
-    alert(`one one ${currName}`);
-  }
-}
-```
-
-- 6.5 `this`的注意事项
-
-> 子类使用`super`关键字时，`this`应在调用`super`之后才能使用
-
-> 可在方法中`return this`来实现链式调用写法
-
-```js
-class Foo {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-  }
-}
-
-// 不好
-class SubFoo extends Foo {
-  constructor(x, y, z) {
-    this.z = z; // 引用错误
-    super(x, y);
-  }
-}
-
-
-// 好
-class SubFoo extends Foo {
-  constructor(x, y, z) {
-    super(x, y);
-    this.z = z; // this 放在 super 后调用
-  }
-  setHeight(height) {
-    this.height = height;
-    return this;
-  }
-}
-```
-
-
-#### 模块
-
-- 7.1 使用`import / export`来做模块加载导出，不使用非标准模块写法
-
-> 跟着标准走的人，运气总不会太差
-
-```js
-// 不好
-const colors  = require('./colors');
-module.exports = color.lightRed;
-
-
-// 好
-import { lightRed } from './colors';
-export default lightRed;
-
-```
-
-- 7.2 `import / export` 后面采用花括号`{ }`引入模块的写法时，须在花括号内左右各保留一个空格
-
-```js
-// 不好
-import {lightRed} from './colors';
-import { lightRed} from './colors';
-
-// 好
-import { lightRed } from './colors';
-```
-**[⬆ 回到目录](#内容目录)**
+    // good
+    render() {
+      return (<div />);
+    }
+    ```
+
+## Ordering
+
+  - Ordering for `class extends React.Component`:
+
+  1. optional `static` methods
+  1. `constructor`
+  1. `getChildContext`
+  1. `componentWillMount`
+  1. `componentDidMount`
+  1. `componentWillReceiveProps`
+  1. `shouldComponentUpdate`
+  1. `componentWillUpdate`
+  1. `componentDidUpdate`
+  1. `componentWillUnmount`
+  1. *clickHandlers or eventHandlers* like `onClickSubmit()` or `onChangeDescription()`
+  1. *getter methods for `render`* like `getSelectReason()` or `getFooterContent()`
+  1. *optional render methods* like `renderNavigation()` or `renderProfilePicture()`
+  1. `render`
+
+  - How to define `propTypes`, `defaultProps`, `contextTypes`, etc...
+
+    ```jsx
+    import React from 'react';
+    import PropTypes from 'prop-types';
+
+    const propTypes = {
+      id: PropTypes.number.isRequired,
+      url: PropTypes.string.isRequired,
+      text: PropTypes.string,
+    };
+
+    const defaultProps = {
+      text: 'Hello World',
+    };
+
+    class Link extends React.Component {
+      static methodsAreOk() {
+        return true;
+      }
+
+      render() {
+        return <a href={this.props.url} data-id={this.props.id}>{this.props.text}</a>;
+      }
+    }
+
+    Link.propTypes = propTypes;
+    Link.defaultProps = defaultProps;
+
+    export default Link;
+    ```
+
+  - Ordering for `React.createClass`: eslint: [`react/sort-comp`](https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/sort-comp.md)
+
+  1. `displayName`
+  1. `propTypes`
+  1. `contextTypes`
+  1. `childContextTypes`
+  1. `mixins`
+  1. `statics`
+  1. `defaultProps`
+  1. `getDefaultProps`
+  1. `getInitialState`
+  1. `getChildContext`
+  1. `componentWillMount`
+  1. `componentDidMount`
+  1. `componentWillReceiveProps`
+  1. `shouldComponentUpdate`
+  1. `componentWillUpdate`
+  1. `componentDidUpdate`
+  1. `componentWillUnmount`
+  1. *clickHandlers or eventHandlers* like `onClickSubmit()` or `onChangeDescription()`
+  1. *getter methods for `render`* like `getSelectReason()` or `getFooterContent()`
+  1. *optional render methods* like `renderNavigation()` or `renderProfilePicture()`
+  1. `render`
+
+## `isMounted`
+
+  - Do not use `isMounted`. eslint: [`react/no-is-mounted`](https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/no-is-mounted.md)
+
+  > Why? [`isMounted` is an anti-pattern][anti-pattern], is not available when using ES6 classes, and is on its way to being officially deprecated.
+
+  [anti-pattern]: https://facebook.github.io/react/blog/2015/12/16/ismounted-antipattern.html
+
+## Translation
+
+  This JSX/React style guide is also available in other languages:
+
+  - ![cn](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/China.png) **Chinese (Simplified)**: [JasonBoy/javascript](https://github.com/JasonBoy/javascript/tree/master/react)
+  - ![tw](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/Taiwan.png) **Chinese (Traditional)**: [jigsawye/javascript](https://github.com/jigsawye/javascript/tree/master/react)
+  - ![es](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/Spain.png) **Español**: [agrcrobles/javascript](https://github.com/agrcrobles/javascript/tree/master/react)
+  - ![jp](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/Japan.png) **Japanese**: [mitsuruog/javascript-style-guide](https://github.com/mitsuruog/javascript-style-guide/tree/master/react)
+  - ![kr](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/South-Korea.png) **Korean**: [apple77y/javascript](https://github.com/apple77y/javascript/tree/master/react)
+  - ![pl](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/Poland.png) **Polish**: [pietraszekl/javascript](https://github.com/pietraszekl/javascript/tree/master/react)
+  - ![Br](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/Brazil.png) **Portuguese**: [ronal2do/javascript](https://github.com/ronal2do/airbnb-react-styleguide)
+  - ![ru](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/Russia.png) **Russian**: [leonidlebedev/javascript-airbnb](https://github.com/leonidlebedev/javascript-airbnb/tree/master/react)
+  - ![th](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/Thailand.png) **Thai**: [lvarayut/javascript-style-guide](https://github.com/lvarayut/javascript-style-guide/tree/master/react)
+  - ![tr](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/Turkey.png) **Turkish**: [alioguzhan/react-style-guide](https://github.com/alioguzhan/react-style-guide)
+  - ![ua](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/Ukraine.png) **Ukrainian**: [ivanzusko/javascript](https://github.com/ivanzusko/javascript/tree/master/react)
+  - ![vn](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/Vietnam.png) **Vietnam**: [uetcodecamp/jsx-style-guide](https://github.com/UETCodeCamp/jsx-style-guide)
+
+**[⬆ back to top](#table-of-contents)**
