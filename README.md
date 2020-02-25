@@ -9,6 +9,6 @@
 5. [Useful NPM libraries](docs/npm.md)
 
 # reference:
-[Code-Style from airbnb](https://github.com/cj768025549/react-native-coding-style)
+[Code-Style from airbnb](reference/README.md)
 
 
